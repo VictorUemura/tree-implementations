@@ -37,14 +37,18 @@ public class BTree {
             for (int i = 0; i < No.m; i++) {
                 cx1.setVInfo(i, noExcedente.getVInfo(i));
                 cx1.setVPos(i, noExcedente.getVPos(i));
+                cx1.setVLig(i, noExcedente.getVLig(i));
                 cx1.setTl(cx1.getTl() + 1);
             }
+            cx1.setVLig(No.m, noExcedente.getVLig(No.m));
 
             for (int i = No.m + 1; i < noExcedente.getTl(); i++) {
                 cx2.setVInfo(i - No.m - 1, noExcedente.getVInfo(i));
                 cx2.setVPos(i - No.m - 1, noExcedente.getVPos(i));
+                cx2.setVLig(i - No.m - 1, noExcedente.getVLig(i));
                 cx2.setTl(cx2.getTl() + 1);
             }
+            cx2.setVLig(cx2.getTl(), noExcedente.getVLig(noExcedente.getTl()));
 
             valorInsercao = noExcedente.getVInfo(No.m);
             posicaoInsercao = noExcedente.getVPos(No.m);
