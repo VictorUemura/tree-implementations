@@ -114,4 +114,151 @@ public class BTree {
         }
     }
 
+    private No menorSub(No subArvore) {
+        while (subArvore.getVLig(0) != null)
+            subArvore = subArvore.getVLig(0);
+        return subArvore;
+    }
+
+    private No maiorSub(No subArvore) {
+        while (subArvore.getVLig(0) != null)
+            subArvore = subArvore.getVLig(subArvore.getTl());
+        return subArvore;
+    }
+
+    private void redistribuiOuConcatena(No folha) {
+        int pos;
+        No pai, irmaE, irmaD;
+
+        while (folha.getTl() < No.m && folha != root) {
+            pai = buscaPai(folha);
+
+            // encontra as irmas da folha
+            irmaE = irmaD = null;
+            pos = pai.procurarPosicao(folha.getVInfo(0));
+
+            if (pos - 1 >= 0)
+                irmaE = pai.getVLig(pos - 1);
+            if (pos + 1 <= pai.getTl())
+                irmaD = pai.getVLig(pos + 1);
+
+            // redistribuicao -> a redistribuicao acontece sempre que o numero
+            // de elementos de u no-irma + elementos da folha >= m * 2
+            if (irmaE != null && irmaE.getTl() > No.m) {
+                folha.remanejar(0);
+                folha.setVPos(0, pai.getVPos(pos - 1));
+                folha.setVInfo(0, pai.getVInfo(pos - 1));
+                folha.setTl(folha.getTl() + 1);
+
+                pai.setVPos(pos - 1, irmaE.getVPos(irmaE.getTl() - 1));
+                pai.setVInfo(pos - 1, irmaE.getVInfo(irmaE.getTl() - 1));
+                folha.setVLig(0, irmaE.getVLig(irmaE.getTl()));
+                irmaE.setTl(irmaE.getTl() - 1);
+
+                // redistribuicao -> com a irma da direita
+            } else if (irmaD != null && irmaD.getTl() > No.m) {
+                folha.setVInfo(folha.getTl(), pai.getVInfo(pos));
+                folha.setVPos(folha.getTl(), pai.getVPos(pos));
+                folha.setTl(folha.getTl() + 1);
+                folha.setVLig(folha.getTl(), irmaD.getVLig(0));
+
+                pai.setVInfo(pos, irmaD.getVInfo(0));
+                pai.setVPos(pos, irmaD.getVPos(0));
+                irmaD.remanejarExclusao(0);
+                irmaD.setTl(irmaD.getTl() - 1);
+
+            } else {
+                if (irmaE == null) {
+                    irmaE = folha;
+                    folha = irmaD;
+                    pos++;
+                }
+
+                irmaE.setVInfo(irmaE.getTl(), pai.getVInfo(pos - 1));
+                irmaE.setVPos(irmaE.getTl(), pai.getVPos(pos - 1));
+                irmaE.setTl(irmaE.getTl() + 1);
+                pai.remanejarExclusao(pos - 1);
+                pai.setTl(pai.getTl() - 1);
+                pai.setVLig(pos - 1, irmaE);
+
+                for (int i = 0; i < folha.getTl(); i++) {
+                    irmaE.setVInfo(irmaE.getTl(), folha.getVInfo(i));
+                    irmaE.setVPos(irmaE.getTl(), folha.getVPos(i));
+                    irmaE.setVLig(irmaE.getTl(), folha.getVLig(i));
+                    irmaE.setTl(irmaE.getTl() + 1);
+                }
+                irmaE.setVLig(irmaE.getTl(), folha.getVLig(folha.getTl()));
+
+            }
+            if (pai == root && pai.getTl() == 0)
+                root = irmaE;
+
+            folha = pai;
+        }
+    }
+
+    private No buscaNo(int value) {
+        int pos;
+        No aux = root;
+
+        pos = aux.procurarPosicao(value);
+        while (aux != null && aux.getVInfo(pos) != value) {
+            aux = aux.getVLig(pos);
+            if (aux != null)
+                pos = aux.procurarPosicao(value);
+        }
+
+        return aux;
+    }
+
+    public void remove(int value) {
+        No subE, subD, folha;
+        int pos, aux;
+
+        folha = buscaNo(value);
+        if (folha != null) {
+            pos = folha.procurarPosicao(value);
+
+            // tem que fazer a substituicao porque o elemento que esta sendo apagado
+            // nao e uma folha e so pode ser removido folhas da arvore
+            if (folha.getVLig(0) != null) {
+                subE = maiorSub(folha.getVLig(pos));
+                subD = menorSub(folha.getVLig(pos + 1));
+
+                // priorizando o lado esquerdo para a substituicao
+                if (subE.getTl() > No.m || subD.getTl() == No.m) {
+                    folha.setVInfo(pos, subE.getVInfo(subE.getTl() - 1));
+                    folha.setVPos(pos, subE.getVPos(subE.getTl() - 1));
+
+                    // faz com que a folha agora seja a folha onde o elemento
+                    // foi utilizado para substituicao
+                    folha = subE;
+                    // posicao logica de onde o elemento se encontra
+                    pos = folha.getTl() - 1;
+
+                    // caso para a substituicao utilizando o menor elemento
+                    // da direita
+                } else {
+                    folha.setVInfo(pos, subD.getVInfo(0));
+                    folha.setVPos(pos, subD.getVPos(0));
+
+                    folha = subD;
+                    pos = 0;
+                }
+            }
+            folha.remanejarExclusao(pos);
+            folha.setTl(folha.getTl() - 1);
+
+            if (folha == root && folha.getTl() == 0)
+                root = null;
+
+                // aqui folha e diferente de root porque isso nao pode acontecer com a raiz
+                // pois nao tem irmas
+            else if (folha != root && folha.getTl() < No.m)
+                redistribuiOuConcatena(folha);
+
+        }
+
+    }
+
 }

@@ -18,6 +18,9 @@ public class Main {
             bTree.insert(i, i);
         }
 
+        for(int i = 70; i < 80; i++)
+            bTree.remove(i);
+
         bTree.inOrdem();
     }
 

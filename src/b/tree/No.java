@@ -63,11 +63,19 @@ public class No {
 
     public void remanejar(int pos) {
         vLig[tl + 1] = vLig[tl];
-        for(int i = tl; i > pos; i--) {
+        for (int i = tl; i > pos; i--) {
             vInfo[i] = vInfo[i - 1];
             vPos[i] = vPos[i - 1];
             vLig[i] = vLig[i - 1];
         }
+    }
 
+    public void remanejarExclusao(int pos) {
+        for (int i = pos; i < tl; i++) {
+            vPos[i] = vPos[i + 1];
+            vLig[i] = vLig[i + 1];
+            vInfo[i] = vInfo[i + 1];
+        }
+        vLig[tl] = vLig[tl + 1];
     }
 }
